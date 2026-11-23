@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Simulasi Ujian Keamanan Siber — EHE EC-Council</title>
+<style>
+  :root{
+    --bg:#f4f6f5; --surface:#ffffff; --surface2:#eef2f0; --ink:#17211d; --muted:#5b6b63;
+    --line:#d9e1dd; --accent:#0f766e; --accent-ink:#ffffff; --accent-soft:#e0f2ef;
+    --ok:#15803d; --ok-bg:#e7f6ec; --bad:#b91c1c; --bad-bg:#fdecec; --warn:#b45309; --warn-bg:#fdf3e0;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0e1412; --surface:#17201c; --surface2:#1e2a25; --ink:#e8efec; --muted:#9db0a6;
+      --line:#2b3a34; --accent:#2dd4bf; --accent-ink:#06231f; --accent-soft:#123832;
+      --ok:#4ade80; --ok-bg:#123524; --bad:#f87171; --bad-bg:#3d1717; --warn:#fbbf24; --warn-bg:#3a2c10;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    line-height:1.55;font-size:16px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  .wrap{max-width:880px;margin:0 auto;padding:16px 16px 56px}
+  button,[role="button"]{min-height:44px}
+  .hidden{display:none !important}
+
+  /* ---------- generic ---------- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--accent);
+    background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px 18px;font-size:16px;
+    font-weight:600;cursor:pointer;text-decoration:none}
+  .btn:active{opacity:.85}
+  .btn.ghost{background:transparent;color:var(--accent)}
+  .btn.plain{background:var(--surface);color:var(--ink);border-color:var(--line)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.small{min-height:38px;padding:6px 12px;font-size:14px}
+  .muted{color:var(--muted)}
+  .small{font-size:14px}
+  h1{font-size:26px;line-height:1.25;margin:0 0 8px}
+  h2{font-size:20px;margin:0 0 8px}
+  h3{font-size:17px;margin:0 0 6px}
+  .pill{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;
+    padding:2px 10px;font-size:13px;font-weight:600}
+  .pill.warn{background:var(--warn-bg);color:var(--warn)}
+
+  /* ---------- login ---------- */
+  .login-wrap{max-width:520px;margin:0 auto;padding-top:28px}
+  .shield{width:56px;height:56px;border-radius:14px;background:var(--accent);color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .shield svg{width:32px;height:32px}
+  label.flabel{display:block;font-weight:600;margin:18px 0 6px}
+  input[type="text"]{width:100%;padding:13px 14px;font-size:17px;border:1.5px solid var(--line);
+    border-radius:10px;background:var(--surface);color:var(--ink)}
+  input[type="text"]:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  .err{color:var(--bad);font-size:14px;margin-top:6px;min-height:20px}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .info-grid .cell{background:var(--surface2);border-radius:10px;padding:12px}
+  .info-grid .k{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .info-grid .v{font-weight:700;font-size:15.5px;margin-top:2px}
+  @media (max-width:480px){.info-grid{grid-template-columns:1fr}}
+
+  /* ---------- home ---------- */
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .countdown{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;
+    display:flex;gap:16px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  .countdown .big{font-size:30px;font-weight:800;line-height:1}
+  .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:640px){.mode-grid{grid-template-columns:1fr}}
+  .mode-card{text-align:left;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;cursor:pointer;color:var(--ink);font:inherit}
+  .mode-card:hover{border-color:var(--accent)}
+  .mode-card .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .topic-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .topic-chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;
+    padding:8px 14px;font-size:14.5px;cursor:pointer;min-height:40px}
+  .topic-chip:hover{border-color:var(--accent);color:var(--accent)}
+  .section{margin-top:22px}
+
+  /* ---------- exam ---------- */
+  .exam-head{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0 12px;border-bottom:1px solid var(--line)}
+  .exam-head .row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .timer{font-size:20px;font-weight:800;padding:4px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--line)}
+  .timer.low{background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+  .progress{height:9px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:10px}
+  .progress > div{height:100%;background:var(--accent);width:0%;transition:width .25s}
+  .qcard{margin-top:16px}
+  .qmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .qtext{font-size:18px;font-weight:600;line-height:1.5;margin:0 0 16px}
+  .opt{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;background:var(--surface);
+    border:1.5px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer;
+    color:var(--ink);font:inherit}
+  .opt .letter{flex:0 0 30px;width:30px;height:30px;border-radius:8px;background:var(--surface2);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+  .opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .opt.sel .letter{background:var(--accent);color:var(--accent-ink)}
+  .opt.correct{border-color:var(--ok);background:var(--ok-bg)}
+  .opt.correct .letter{background:var(--ok);color:#fff}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+  .opt.wrong .letter{background:var(--bad);color:#fff}
+  .opt:disabled{cursor:default;opacity:1}
+  .explain{border-radius:12px;padding:14px 16px;margin-top:6px;font-size:15px}
+  .explain.ok{background:var(--ok-bg)} .explain.bad{background:var(--bad-bg)}
+  .explain .t{font-weight:700;margin-bottom:4px}
+  .exam-nav{display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap}
+  .navgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:8px;margin-top:12px}
+  .navbtn{position:relative;height:44px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);
+    color:var(--ink);font-weight:600;cursor:pointer;font-size:15px}
+  .navbtn.done{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .navbtn.now{outline:2.5px solid var(--accent);outline-offset:1px}
+  .navbtn .flagdot{position:absolute;top:3px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--warn)}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal{background:var(--surface);border-radius:16px;padding:22px;max-width:440px;width:100%}
+
+  /* ---------- result ---------- */
+  .score-hero{text-align:center;padding:26px 20px}
+  .score-num{font-size:56px;font-weight:800;line-height:1}
+  .verdict{font-size:19px;font-weight:700;margin-top:6px}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  @media (max-width:640px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--surface2);border-radius:10px;padding:12px;text-align:center}
+  .stat .n{font-size:22px;font-weight:800}
+  .stat .l{font-size:13px;color:var(--muted)}
+  .cat-row{margin-bottom:12px}
+  .cat-row .top{display:flex;justify-content:space-between;font-size:14.5px;margin-bottom:4px}
+  .bar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
+  .bar > div{height:100%;background:var(--accent)}
+  .bar > div.lowbar{background:var(--bad)}
+  .review-item{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--surface)}
+  .review-item .rq{font-weight:600;margin:6px 0 10px}
+  .ansline{font-size:15px;margin:3px 0}
+  .ansline .tag{font-weight:700}
+  .ok-t{color:var(--ok)} .bad-t{color:var(--bad)}
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .foot{margin-top:28px;text-align:center;color:var(--muted);font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ LOGIN ============ -->
+  <section id="scr-login">
+    <div class="login-wrap">
+      <div class="card">
+        <div class="shield" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10z"/><path d="m9 11.5 2 2 4-4"/></svg>
+        </div>
+        <h1>Simulasi Ujian Keamanan Siber</h1>
+        <p class="muted" style="margin:0">Latihan soal <strong>Ethical Hacking Essentials (EHE) — EC-Council</strong> berdasarkan materi Pelatihan Teknik Keamanan Siber Level Dasar. Mode Simulasi Penuh mengikuti format ujian sebenarnya: <strong>75 soal pilihan ganda, 120 menit (2 jam), nilai lulus 70</strong>. Masukkan nama lengkap Anda untuk memulai — nama ini tampil selama simulasi dan di lembar hasil.</p>
+        <form id="login-form" novalidate>
+          <label class="flabel" for="inp-name">Nama lengkap peserta</label>
+          <input type="text" id="inp-name" autocomplete="name" placeholder="Contoh: Budi Santoso" maxlength="60" />
+          <div class="err" id="login-err" role="alert"></div>
+          <button type="submit" class="btn" style="width:100%;margin-top:6px">Masuk &amp; Pilih Simulasi →</button>
+        </form>
+        <div class="info-grid">
+          <div class="cell"><div class="k">Ujian sebenarnya</div><div class="v">Sabtu, 28 Nov 2026</div></div>
+          <div class="cell"><div class="k">Sertifikasi</div><div class="v">EHE · EC-Council</div></div>
+          <div class="cell"><div class="k">Format ujian asli</div><div class="v">75 soal · 120 menit</div></div>
+          <div class="cell"><div class="k">Target lulus latihan</div><div class="v">Nilai ≥ 70</div></div>
+        </div>
+      </div>
+      <p class="foot">Soal latihan disusun dari materi pelatihan — bukan soal resmi EC-Council.<br />Dibuat oleh @budhisant2026</p>
+    </div>
+  </section>
+
+  <!-- ============ HOME ============ -->
+  <section id="scr-home" class="hidden">
+    <div class="topbar">
+      <div>
+        <div class="small muted">Selamat datang,</div>
+        <h1 id="home-name" style="margin:0">—</h1>
+      </div>
+      <button class="btn plain small" id="btn-change-name">Ganti nama</button>
+    </div>
+
+    <div class="countdown">
+      <div><div class="big" id="cd-days">4</div><div class="small muted">hari lagi</div></div>
+      <div>
+        <strong>Ujian EHE — Sabtu, 28 November 2026</strong><br />
+        <span class="muted small">Fokus utama: Simulasi Penuh format ujian asli (75 soal · 120 menit). Setelah itu ulangi soal yang salah lewat mode per topik.</span>
+      </div>
+    </div>
+
+    <h2>Pilih mode simulasi</h2>
+    <p class="muted small" style="margin-top:0">Mode ujian memakai timer dan nilai dihitung di akhir. Mode belajar menampilkan pembahasan langsung setelah menjawab.</p>
+    <div class="mode-grid">
+      <button class="mode-card" data-start="set1">
+        <h3>📝 Set 1 — Simulasi Ujian</h3>
+        <p class="muted small" style="margin:0">30 soal pilihan ganda mencakup seluruh materi pokok pelatihan.</p>
+        <div class="meta"><span class="pill">30 soal</span><span class="pill">60 menit</span><span class="pill">Target ≥ 21 benar</span></div>
+      </button>
+      <button class="mode-card" data-start="set2">
+        <h3>📝 Set 2 — Simulasi Ujian</h3>
+        <p class="muted small" style="margin:0">24 soal baru, tidak tumpang tindih dengan Set 1. Cocok untuk percobaan kedua.</p>
+        <div class="meta"><span class="pill">24 soal</span><span class="pill">50 menit</span><span class="pill">Target ≥ 17 benar</span></div>
+      </button>
+      <button class="mode-card" data-start="full">
+        <h3>🎯 Simulasi Penuh — Format Ujian Asli</h3>
+        <p class="muted small" style="margin:0">75 soal diacak dari bank soal — jumlah soal, durasi, dan target lulus sama seperti ujian EHE sebenarnya.</p>
+        <div class="meta"><span class="pill">75 soal</span><span class="pill">120 menit (2 jam)</span><span class="pill">Target ≥ 53 benar</span></div>
+      </button>
+      <button class="mode-card" data-start="study">
+        <h3>📖 Mode Belajar</h3>
+        <p class="muted small" style="margin:0">Tanpa timer. Setiap jawaban langsung dicek dan dibahas. Pilih topik di bawah.</p>
+        <div class="meta"><span class="pill">75 soal</span><span class="pill">Tanpa timer</span><span class="pill">Pembahasan langsung</span></div>
+      </button>
+    </div>
+
+    <div class="section card">
+      <h3>Latihan per topik</h3>
+      <p class="muted small" style="margin:0">Fokuskan latihan pada materi yang masih lemah (mode belajar, tanpa timer).</p>
+      <div class="topic-list" id="topic-list"></div>
+    </div>
+
+    <div class="section card">
+      <h3>Cara memakai simulasi ini</h3>
+      <ol class="small" style="margin:6px 0 0;padding-left:20px">
+        <li>Kerjakan Set 1 dengan timer, jangan membuka pembahasan di tengah jalan.</li>
+        <li>Di layar hasil, baca pembahasan semua soal yang salah dan yang Anda tandai ragu-ragu.</li>
+        <li>Ulangi topik yang lemah lewat “Latihan per topik”, lalu tutup dengan Simulasi Penuh format asli (75 soal · 120 menit).</li>
+        <li>Selama ujian Anda bisa menandai soal (tombol “Tandai ragu-ragu”) dan melompat antar nomor soal.</li>
+      </ol>
+    </div>
+    <p class="foot">Materi: Pengantar Keamanan Siber · Manajemen Risiko · Perlindungan Data · Penanganan Insiden · Keamanan OS &amp; Server · Keamanan Jaringan · Pemantauan &amp; Respons Insiden · Ethical Hacking Essentials v2 (EC-Council).<br />Dibuat oleh @budhisant2026</p>
+  </section>
+
+  <!-- ============ EXAM ============ -->
+  <section id="scr-exam" class="hidden">
+    <div class="ehe-banner">
+      <div>
+        <div class="ehe-title">EC-Council — Ethical Hacking Essentials (EHE)</div>
+        <div class="ehe-sub">Exam Simulation · Multiple Choice · <span id="exam-mode-label">Simulation</span></div>
+      </div>
+      <div class="ehe-cand">Candidate / Peserta<br /><strong id="exam-user">—</strong></div>
+    </div>
+    <div class="exam-head">
+      <div class="row">
+        <div class="small"><span class="muted">Question / Soal</span> <strong id="exam-count">1 of 30</strong>
+          &nbsp;·&nbsp; <span class="muted">Answered / Dijawab</span> <strong id="exam-answered">0</strong>
+          &nbsp;·&nbsp; <span class="muted">Marked / Ditandai</span> <strong id="exam-marked">0</strong></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="small muted">Time Remaining / Sisa Waktu</span>
+          <span class="timer mono" id="exam-timer">60:00</span>
+        </div>
+      </div>
+      <div class="progress"><div id="exam-progress"></div></div>
+      <div class="row" style="margin-top:10px">
+        <div class="lang-toggle" role="group" aria-label="Language / Bahasa soal">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="both" class="on">EN + ID</button>
+          <button type="button" data-lang="id">ID</button>
+        </div>
+        <span class="small muted">Real EHE exam is in English — practice in EN or EN + ID. / Ujian EHE asli berbahasa Inggris.</span>
+      </div>
+    </div>
+
+    <div class="card qcard">
+      <div class="qmeta">
+        <span class="pill" id="q-cat">Kategori</span>
+        <span class="pill warn hidden" id="q-flagged">Ditandai ragu-ragu</span>
+      </div>
+      <p class="qtext" id="q-text">—</p>
+      <div id="q-opts"></div>
+      <div id="q-explain"></div>
+    </div>
+
+    <div class="exam-nav">
+      <button class="btn plain" id="btn-prev">← Previous / Sebelumnya</button>
+      <button class="btn ghost" id="btn-flag">⚑ Mark for Review / Tandai</button>
+      <button class="btn" id="btn-next">Next / Berikutnya →</button>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <strong>Question Navigator / Navigasi Soal</strong>
+        <span class="small muted" id="nav-summary"></span>
+      </div>
+      <div class="navgrid" id="nav-grid"></div>
+      <p class="small muted" style="margin:10px 0 0">Like the real exam, you can jump to any question, mark questions for review, and review incomplete/marked questions before ending the exam. / Seperti ujian asli, Anda bisa melompat ke soal mana pun dan meninjau soal kosong/ditandai sebelum mengakhiri ujian.</p>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn" id="btn-submit" style="flex:1">Review &amp; End Exam / Tinjau &amp; Akhiri</button>
+        <button class="btn plain" id="btn-quit">Keluar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="scr-result" class="hidden">
+    <div class="card score-hero">
+      <div class="small muted">Hasil Simulasi · <span id="res-mode">Set 1</span></div>
+      <h2 id="res-name" style="margin-top:4px">—</h2>
+      <div class="score-num" id="res-score">0</div>
+      <div class="verdict" id="res-verdict">—</div>
+      <p class="muted small" id="res-note" style="margin:6px 0 0"></p>
+      <div class="stat-row">
+        <div class="stat"><div class="n" id="res-correct">0</div><div class="l">Benar</div></div>
+        <div class="stat"><div class="n" id="res-wrong">0</div><div class="l">Salah</div></div>
+        <div class="stat"><div class="n" id="res-empty">0</div><div class="l">Kosong</div></div>
+        <div class="stat"><div class="n" id="res-time">0:00</div><div class="l">Waktu dipakai</div></div>
+      </div>
+    </div>
+
+    <div class="card section">
+      <h3>Nilai per topik</h3>
+      <div id="res-cats" style="margin-top:10px"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn" id="btn-retry" style="flex:1">↻ Ulangi Mode Ini</button>
+      <button class="btn plain" id="btn-back-home" style="flex:1">Pilih Mode Lain</button>
+    </div>
+
+    <div class="section">
+      <h2>Pembahasan soal / Answer Review</h2>
+      <div class="filter-row">
+        <button class="btn small" data-filter="all">Semua</button>
+        <button class="btn small plain" data-filter="wrong">Salah &amp; kosong saja</button>
+        <button class="btn small plain" data-filter="correct">Benar saja</button>
+        <span class="lang-toggle" role="group" aria-label="Language / Bahasa pembahasan">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="both" class="on">EN + ID</button>
+          <button type="button" data-lang="id">ID</button>
+        </span>
+      </div>
+      <div id="review-list"></div>
+    </div>
+    <p class="foot">Tetap semangat — targetnya nilai ≥ 70 di ujian EHE hari Sabtu, 28 November 2026.<br />Dibuat oleh @budhisant2026</p>
+  </section>
+
+</div>
+
+<!-- instructions modal (EHE-style, shown before exam starts) -->
+<div class="modal-bg hidden" id="modal-instructions">
+  <div class="modal" style="max-width:520px">
+    <h3>Exam Instructions / Petunjuk Ujian</h3>
+    <div class="small" id="instr-body"></div>
+    <label style="display:flex;gap:10px;align-items:flex-start;margin-top:14px;cursor:pointer">
+      <input type="checkbox" id="instr-check" style="width:20px;height:20px;margin-top:2px" />
+      <span class="small">I understand the instructions and I am ready to begin. / Saya memahami petunjuk dan siap memulai.</span>
+    </label>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn" id="instr-start" style="flex:1" disabled>Begin Exam / Mulai Ujian</button>
+      <button class="btn plain" id="instr-cancel" style="flex:1">Cancel / Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- review & submit modal (EHE-style review screen) -->
+<div class="modal-bg hidden" id="modal-submit">
+  <div class="modal" style="max-width:520px">
+    <h3>Review Questions / Tinjau Soal</h3>
+    <p class="small" id="modal-submit-text"></p>
+    <div id="modal-review-lists" class="small"></div>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn" id="modal-yes" style="flex:1">End Exam / Akhiri Ujian</button>
+      <button class="btn plain" id="modal-no" style="flex:1">Back to Exam / Kembali</button>
+    </div>
+  </div>
+</div>
+
+<!-- quit confirm modal -->
+<div class="modal-bg hidden" id="modal-quit">
+  <div class="modal">
+    <h3>Keluar dari simulasi?</h3>
+    <p class="small">Jawaban pada sesi ini akan hilang dan tidak dinilai.</p>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn" id="quit-yes" style="flex:1">Ya, Keluar</button>
+      <button class="btn plain" id="quit-no" style="flex:1">Tetap Mengerjakan</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ehe-banner{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;
+    background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);
+    border-radius:var(--radius);padding:12px 16px;margin-bottom:10px}
+  .ehe-title{font-weight:800;font-size:16.5px}
+  .ehe-sub{font-size:13px;color:var(--muted)}
+  .ehe-cand{font-size:13px;color:var(--muted);text-align:right}
+  .ehe-cand strong{color:var(--ink);font-size:15px}
+  .lang-toggle{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+  .lang-toggle button{border:0;background:var(--surface);color:var(--ink);padding:6px 13px;font-size:14px;
+    font-weight:700;cursor:pointer;min-height:38px}
+  .lang-toggle button.on{background:var(--accent);color:var(--accent-ink)}
+  .qalt{display:block;font-size:15px;color:var(--muted);font-weight:500;margin-top:7px;line-height:1.5}
+  .oalt{display:block;font-size:13.5px;color:var(--muted);margin-top:2px}
+  .opt.sel .oalt{color:inherit;opacity:.75}
+  .rev-jump{display:inline-block;margin:2px 3px 2px 0;padding:4px 10px;border:1px solid var(--line);
+    border-radius:8px;background:var(--surface2);color:var(--ink);cursor:pointer;font-weight:700;min-height:34px}
+</style>
+
+<script>
+"use strict";
+/* ================= QUESTION BANK (bilingual EN + ID) =================
+   Format: {s:set, c:category, a:correctIndex,
+            en:[question,[options],explanation], id:[question,[options],explanation]} */
+var QUESTIONS = [
+/* ---------- SET 1 (30) ---------- */
+{s:1,c:"Dasar & Ancaman",a:1,
+ en:["In the CIA triad, which principle ensures that information is only accessible to authorized users?",["Availability","Confidentiality","Integrity","Non-repudiation"],"Confidentiality protects data from unauthorized access, e.g. through encryption and access control."],
+ id:["Dalam triad CIA, prinsip apa yang memastikan informasi hanya dapat diakses oleh pengguna yang berwenang?",["Ketersediaan (Availability)","Kerahasiaan (Confidentiality)","Integritas (Integrity)","Non-repudiation"],"Confidentiality (kerahasiaan) melindungi data dari akses tidak sah, misalnya dengan enkripsi dan kontrol akses."]},
+{s:1,c:"Dasar & Ancaman",a:2,
+ en:["Malware that encrypts a victim's files and demands payment for the decryption key is called…",["Trojan","Worm","Ransomware","Spyware"],"Ransomware encrypts files and extorts payment, usually in cryptocurrency, for the decryption key."],
+ id:["Malware yang mengenkripsi file korban dan meminta tebusan untuk kunci dekripsinya disebut…",["Trojan","Worm","Ransomware","Spyware"],"Ransomware mengenkripsi file dan memeras korban agar membayar (umumnya kripto) demi kunci dekripsi."]},
+{s:1,c:"Dasar & Ancaman",a:1,
+ en:["What distinguishes spear phishing from regular phishing?",["It is sent by SMS instead of email","It is targeted at a specific person or organization using personal details","It contains no malicious link","It only targets mobile phones"],"Spear phishing is personalized and targeted, using details about the victim to appear convincing."],
+ id:["Apa yang membedakan spear phishing dari phishing biasa?",["Dikirim lewat SMS, bukan email","Ditargetkan ke orang/organisasi tertentu dengan detail pribadi korban","Tidak mengandung tautan berbahaya","Hanya menargetkan ponsel"],"Spear phishing bersifat personal dan tertarget, memakai detail tentang korban agar tampak meyakinkan."]},
+{s:1,c:"Ethical Hacking",a:0,
+ en:["Which activity is an example of passive footprinting?",["Searching the target's public website and WHOIS records","Port scanning the target server","Exploiting a web vulnerability","Brute-forcing a login page"],"Passive footprinting gathers publicly available information without directly interacting with the target system."],
+ id:["Aktivitas mana yang merupakan contoh footprinting pasif?",["Mencari situs publik dan data WHOIS target","Melakukan port scanning ke server target","Mengeksploitasi kerentanan web","Brute force halaman login"],"Footprinting pasif mengumpulkan informasi yang tersedia publik tanpa berinteraksi langsung dengan sistem target."]},
+{s:1,c:"Ethical Hacking",a:2,
+ en:["In Nmap, which option performs a ping scan that only discovers live hosts without scanning ports?",["-sV","-O","-sn","-A"],"-sn disables port scanning; Nmap only checks which hosts are up. -sV detects service versions, -O detects the OS."],
+ id:["Di Nmap, opsi apa yang melakukan ping scan untuk menemukan host aktif saja tanpa memindai port?",["-sV","-O","-sn","-A"],"-sn menonaktifkan port scan; Nmap hanya memeriksa host mana yang aktif. -sV mendeteksi versi layanan, -O mendeteksi OS."]},
+{s:1,c:"Jaringan",a:3,
+ en:["Which port is used by HTTPS by default?",["80","21","25","443"],"HTTPS uses port 443 by default. Port 80 is HTTP, 21 is FTP, 25 is SMTP."],
+ id:["Port berapa yang dipakai HTTPS secara default?",["80","21","25","443"],"HTTPS memakai port 443. Port 80 untuk HTTP, 21 untuk FTP, 25 untuk SMTP."]},
+{s:1,c:"Jaringan",a:1,
+ en:["What is the main function of a firewall?",["To speed up the network connection","To filter traffic based on security rules","To store backup files","To assign IP addresses automatically"],"A firewall monitors and filters incoming/outgoing traffic based on defined rules. Assigning IP addresses is the job of DHCP."],
+ id:["Apa fungsi utama firewall?",["Mempercepat koneksi jaringan","Menyaring lalu lintas data berdasarkan aturan keamanan","Menyimpan file cadangan","Memberikan alamat IP secara otomatis"],"Firewall memantau dan menyaring lalu lintas masuk/keluar berdasarkan aturan. Pemberian IP otomatis adalah tugas DHCP."]},
+{s:1,c:"Risiko & Aset",a:0,
+ en:["In risk assessment, risk level is commonly calculated as…",["Likelihood × Impact","Asset value + Threat","Vulnerability − Control","Impact ÷ Cost"],"Risk is generally expressed as the combination of how likely an event is and how severe its impact would be."],
+ id:["Dalam penilaian risiko, tingkat risiko umumnya dihitung sebagai…",["Kemungkinan (Likelihood) × Dampak (Impact)","Nilai aset + Ancaman","Kerentanan − Kontrol","Dampak ÷ Biaya"],"Risiko umumnya dinyatakan dari gabungan seberapa besar kemungkinan kejadian dan seberapa parah dampaknya."]},
+{s:1,c:"Risiko & Aset",a:2,
+ en:["Why must an organization inventory its information assets before managing risk?",["To increase the number of assets","Assets are not related to risk","You cannot protect or assess the risk of assets you do not know you have","Inventory is only needed for audits"],"Asset identification is the first step of risk management: unknown assets cannot be protected or assessed."],
+ id:["Mengapa organisasi harus menginventarisasi aset informasi sebelum mengelola risiko?",["Agar jumlah aset bertambah","Aset tidak berhubungan dengan risiko","Aset yang tidak diketahui tidak bisa dilindungi atau dinilai risikonya","Inventarisasi hanya untuk keperluan audit"],"Identifikasi aset adalah langkah pertama manajemen risiko: aset yang tidak diketahui tidak dapat dilindungi."]},
+{s:1,c:"Data & Kriptografi",a:1,
+ en:["AES is an example of which type of encryption?",["Asymmetric encryption","Symmetric encryption","Hashing","Steganography"],"AES uses the same key to encrypt and decrypt, so it is symmetric encryption. RSA is asymmetric; hashing is one-way."],
+ id:["AES adalah contoh dari jenis enkripsi apa?",["Enkripsi asimetris","Enkripsi simetris","Hashing","Steganografi"],"AES memakai kunci yang sama untuk enkripsi dan dekripsi, jadi termasuk enkripsi simetris. RSA asimetris; hashing bersifat satu arah."]},
+{s:1,c:"Data & Kriptografi",a:2,
+ en:["What is the key difference between hashing and encryption?",["Hashing is slower than encryption","Encryption is one-way, hashing is two-way","Hashing is one-way and cannot be reversed; encryption can be decrypted with a key","Hashing does not need an algorithm"],"Hash functions are one-way (for integrity/fingerprinting). Encryption is reversible with the correct key."],
+ id:["Apa perbedaan utama hashing dan enkripsi?",["Hashing lebih lambat dari enkripsi","Enkripsi satu arah, hashing dua arah","Hashing bersifat satu arah dan tidak bisa dibalik; enkripsi bisa didekripsi dengan kunci","Hashing tidak butuh algoritma"],"Hash bersifat satu arah (untuk integritas/sidik jari data). Enkripsi bisa dibalik dengan kunci yang benar."]},
+{s:1,c:"Data & Kriptografi",a:0,
+ en:["Which of the following is classified as personal data that must be protected?",["A person's full name and national ID number (NIK)","A school's public address","A published product price list","A public holiday schedule"],"Names combined with ID numbers directly identify a person, so they are personal data under data-protection law (e.g. Indonesia's PDP Law)."],
+ id:["Manakah yang termasuk data pribadi yang wajib dilindungi?",["Nama lengkap dan NIK seseorang","Alamat sekolah yang dipublikasikan","Daftar harga produk yang diumumkan","Jadwal hari libur nasional"],"Nama yang digabung NIK mengidentifikasi seseorang secara langsung, sehingga termasuk data pribadi menurut UU Perlindungan Data Pribadi."]},
+{s:1,c:"Insiden & Pemulihan",a:1,
+ en:["In incident handling, which step should come right after an incident is detected and identified?",["Recovery","Containment — limiting the spread and impact","Lessons learned","Eradication of all backups"],"The typical flow is preparation → detection/identification → containment → eradication → recovery → lessons learned. Containment stops the incident from spreading."],
+ id:["Dalam penanganan insiden, langkah apa yang dilakukan tepat setelah insiden terdeteksi dan teridentifikasi?",["Pemulihan (Recovery)","Containment — membatasi penyebaran dan dampak","Lessons learned","Menghapus semua backup"],"Alurnya: persiapan → deteksi/identifikasi → containment → eradikasi → pemulihan → lessons learned. Containment menghentikan penyebaran insiden."]},
+{s:1,c:"Insiden & Pemulihan",a:3,
+ en:["The 3-2-1 backup rule means…",["3 backups a day, 2 hours apart, 1 administrator","3 passwords, 2 factors, 1 token","3 servers, 2 networks, 1 firewall","3 copies of data, on 2 different media, with 1 copy offsite"],"3-2-1: keep three copies, on two different storage media, with one copy stored offsite (or offline/cloud)."],
+ id:["Aturan backup 3-2-1 berarti…",["3 backup sehari, jeda 2 jam, 1 administrator","3 kata sandi, 2 faktor, 1 token","3 server, 2 jaringan, 1 firewall","3 salinan data, di 2 media berbeda, 1 salinan di lokasi lain (offsite)"],"3-2-1: simpan tiga salinan, pada dua media penyimpanan berbeda, dan satu salinan di lokasi terpisah (offsite/offline/cloud)."]},
+{s:1,c:"OS & Server",a:2,
+ en:["Which action is part of operating system hardening?",["Installing as many services as possible","Using the default administrator password","Disabling unused services and ports","Turning off automatic updates"],"Hardening reduces the attack surface: disable unused services/ports, patch regularly, and remove default credentials."],
+ id:["Tindakan mana yang termasuk hardening sistem operasi?",["Menginstal layanan sebanyak mungkin","Memakai kata sandi administrator bawaan","Menonaktifkan layanan dan port yang tidak dipakai","Mematikan pembaruan otomatis"],"Hardening memperkecil permukaan serangan: nonaktifkan layanan/port tak terpakai, patch rutin, dan ganti kredensial bawaan."]},
+{s:1,c:"OS & Server",a:0,
+ en:["On Linux, what does the command chmod 600 file.txt do?",["Gives read/write permission to the owner only","Gives full access to everyone","Deletes the file","Makes the file executable by all users"],"600 = owner rw, group none, others none. 777 would give everyone full access — which should be avoided for sensitive files."],
+ id:["Di Linux, apa efek perintah chmod 600 file.txt?",["Memberi izin baca/tulis hanya kepada pemilik file","Memberi akses penuh ke semua orang","Menghapus file","Membuat file bisa dieksekusi semua pengguna"],"600 = pemilik rw, grup dan pengguna lain tanpa izin. 777 memberi akses penuh ke semua orang — hindari untuk file sensitif."]},
+{s:1,c:"Web & Nirkabel",a:1,
+ en:["An attacker enters ' OR '1'='1 into a login form to bypass authentication. This attack is…",["Cross-Site Scripting (XSS)","SQL Injection","Cross-Site Request Forgery (CSRF)","Session fixation"],"The input manipulates the SQL query behind the login form — a classic SQL Injection. The main defense is parameterized queries/prepared statements."],
+ id:["Penyerang memasukkan ' OR '1'='1 pada form login untuk melewati autentikasi. Serangan ini adalah…",["Cross-Site Scripting (XSS)","SQL Injection","Cross-Site Request Forgery (CSRF)","Session fixation"],"Input tersebut memanipulasi query SQL di balik form login — SQL Injection klasik. Pertahanan utamanya adalah parameterized query/prepared statement."]},
+{s:1,c:"Web & Nirkabel",a:2,
+ en:["Cross-Site Scripting (XSS) occurs when an attacker…",["Guesses a user's password repeatedly","Floods a server with traffic","Injects malicious scripts that run in other users' browsers","Encrypts the website database"],"In XSS, malicious JavaScript is stored or reflected by a web app and executed in victims' browsers. Defenses: output encoding and input validation."],
+ id:["Cross-Site Scripting (XSS) terjadi ketika penyerang…",["Menebak kata sandi pengguna berulang kali","Membanjiri server dengan lalu lintas data","Menyuntikkan skrip berbahaya yang berjalan di browser pengguna lain","Mengenkripsi database situs web"],"Pada XSS, JavaScript berbahaya disimpan/dipantulkan aplikasi web lalu dieksekusi di browser korban. Pencegahannya: encoding output dan validasi input."]},
+{s:1,c:"Web & Nirkabel",a:3,
+ en:["Which Wi-Fi security protocol is currently the most secure for a school network?",["WEP","WPA","WPA2 with a shared weak password","WPA3"],"WPA3 is the newest and strongest Wi-Fi security standard. WEP is obsolete and easily cracked."],
+ id:["Protokol keamanan Wi-Fi mana yang saat ini paling aman untuk jaringan sekolah?",["WEP","WPA","WPA2 dengan kata sandi lemah bersama","WPA3"],"WPA3 adalah standar keamanan Wi-Fi terbaru dan terkuat. WEP sudah usang dan mudah dibobol."]},
+{s:1,c:"Dasar & Ancaman",a:1,
+ en:["An attacker phones an employee pretending to be IT support and asks for their password. This technique is called…",["Pharming","Pretexting (social engineering)","Tailgating hardware attack","Watering hole attack"],"Pretexting creates a fabricated scenario (a pretext) to trick victims into revealing information — a social engineering technique."],
+ id:["Penyerang menelepon pegawai, berpura-pura sebagai staf IT, dan meminta kata sandinya. Teknik ini disebut…",["Pharming","Pretexting (rekayasa sosial)","Serangan perangkat keras tailgating","Watering hole attack"],"Pretexting menciptakan skenario palsu untuk menipu korban agar membocorkan informasi — salah satu teknik social engineering."]},
+{s:1,c:"Ethical Hacking",a:2,
+ en:["Nessus is primarily used for…",["Packet analysis","Password cracking","Vulnerability scanning","Web application development"],"Nessus (Tenable) scans systems and networks for known vulnerabilities and misconfigurations. Wireshark is for packet analysis."],
+ id:["Nessus terutama digunakan untuk…",["Analisis paket data","Memecahkan kata sandi","Pemindaian kerentanan (vulnerability scanning)","Pengembangan aplikasi web"],"Nessus (Tenable) memindai sistem dan jaringan untuk mencari kerentanan dan kesalahan konfigurasi. Analisis paket adalah fungsi Wireshark."]},
+{s:1,c:"Jaringan",a:0,
+ en:["Wireshark is a tool used to…",["Capture and analyze network traffic packets","Automatically patch servers","Manage user accounts","Encrypt hard disks"],"Wireshark is a network protocol analyzer that captures packets for troubleshooting and security analysis."],
+ id:["Wireshark adalah alat untuk…",["Menangkap dan menganalisis paket lalu lintas jaringan","Mem-patch server secara otomatis","Mengelola akun pengguna","Mengenkripsi hard disk"],"Wireshark adalah penganalisis protokol jaringan yang menangkap paket untuk troubleshooting dan analisis keamanan."]},
+{s:1,c:"Dasar & Ancaman",a:1,
+ en:["How does a DDoS attack differ from a DoS attack?",["DDoS uses malware, DoS does not","DDoS traffic comes from many distributed sources","DDoS only targets websites","DoS is always illegal, DDoS is not"],"DoS comes from a single source; DDoS (Distributed DoS) floods the target from many compromised devices, often a botnet."],
+ id:["Apa perbedaan serangan DDoS dan DoS?",["DDoS memakai malware, DoS tidak","Lalu lintas DDoS berasal dari banyak sumber terdistribusi","DDoS hanya menargetkan situs web","DoS selalu ilegal, DDoS tidak"],"DoS berasal dari satu sumber; DDoS (Distributed DoS) membanjiri target dari banyak perangkat yang dikuasai, sering berupa botnet."]},
+{s:1,c:"Data & Kriptografi",a:3,
+ en:["Which practice most improves account security beyond a strong password?",["Using the same password everywhere","Writing the password on a sticky note","Changing the password every day","Enabling multi-factor authentication (MFA)"],"MFA adds another verification factor (e.g. an authenticator app code), so a leaked password alone is not enough to break in."],
+ id:["Praktik apa yang paling meningkatkan keamanan akun selain kata sandi yang kuat?",["Memakai kata sandi yang sama di semua akun","Menulis kata sandi di catatan tempel","Mengganti kata sandi setiap hari","Mengaktifkan autentikasi multifaktor (MFA)"],"MFA menambah faktor verifikasi lain (mis. kode aplikasi autentikator), sehingga kata sandi yang bocor saja tidak cukup untuk membobol akun."]},
+{s:1,c:"Etika & Budaya",a:0,
+ en:["Before starting a penetration test, an ethical hacker must first obtain…",["Written authorization from the system owner","A faster internet connection","The target's admin password","Approval from the attacker's team"],"Legal, documented permission and a clear scope are mandatory. Testing without authorization is illegal, even with good intentions."],
+ id:["Sebelum memulai penetration test, seorang ethical hacker wajib terlebih dahulu memperoleh…",["Izin tertulis dari pemilik sistem","Koneksi internet yang lebih cepat","Kata sandi admin target","Persetujuan dari tim penyerang"],"Izin resmi tertulis dan ruang lingkup (scope) yang jelas adalah syarat mutlak. Pengujian tanpa izin adalah ilegal, meski niatnya baik."]},
+{s:1,c:"Ethical Hacking",a:2,
+ en:["Metasploit Framework is best known as a tool for…",["Designing network topologies","Managing databases","Exploitation and penetration testing","Editing images"],"Metasploit provides exploits, payloads, and auxiliary modules used in authorized penetration testing."],
+ id:["Metasploit Framework paling dikenal sebagai alat untuk…",["Merancang topologi jaringan","Mengelola database","Eksploitasi dan penetration testing","Mengedit gambar"],"Metasploit menyediakan exploit, payload, dan modul pendukung untuk penetration testing yang berizin."]},
+{s:1,c:"Jaringan",a:1,
+ en:["What is the difference between an IDS and an IPS?",["IDS blocks attacks, IPS only logs them","IDS detects and alerts; IPS can also block malicious traffic inline","They are exactly the same","IPS works only on wireless networks"],"IDS (Intrusion Detection System) monitors and alerts. IPS (Intrusion Prevention System) sits inline and can actively block threats."],
+ id:["Apa perbedaan IDS dan IPS?",["IDS memblokir serangan, IPS hanya mencatat","IDS mendeteksi dan memberi peringatan; IPS juga dapat memblokir lalu lintas berbahaya secara inline","Keduanya persis sama","IPS hanya bekerja di jaringan nirkabel"],"IDS (Intrusion Detection System) memantau dan memberi peringatan. IPS (Intrusion Prevention System) berada inline dan dapat memblokir ancaman secara aktif."]},
+{s:1,c:"Ethical Hacking",a:0,
+ en:["What is the correct order of the five phases of hacking?",["Reconnaissance → Scanning → Gaining Access → Maintaining Access → Clearing Tracks","Scanning → Reconnaissance → Clearing Tracks → Gaining Access → Maintaining Access","Gaining Access → Reconnaissance → Scanning → Clearing Tracks → Maintaining Access","Reconnaissance → Gaining Access → Scanning → Maintaining Access → Clearing Tracks"],"The CEH hacking methodology: reconnaissance, scanning, gaining access, maintaining access, clearing tracks."],
+ id:["Urutan lima fase hacking yang benar adalah…",["Reconnaissance → Scanning → Gaining Access → Maintaining Access → Clearing Tracks","Scanning → Reconnaissance → Clearing Tracks → Gaining Access → Maintaining Access","Gaining Access → Reconnaissance → Scanning → Clearing Tracks → Maintaining Access","Reconnaissance → Gaining Access → Scanning → Maintaining Access → Clearing Tracks"],"Metodologi hacking CEH: reconnaissance, scanning, gaining access, maintaining access, clearing tracks."]},
+{s:1,c:"Insiden & Pemulihan",a:2,
+ en:["RTO (Recovery Time Objective) defines…",["How much data can be lost, in hours","The budget for recovery","The maximum acceptable time to restore a service after an incident","The number of backup copies required"],"RTO is the target maximum downtime. RPO (Recovery Point Objective) defines acceptable data loss measured in time."],
+ id:["RTO (Recovery Time Objective) adalah…",["Berapa banyak data yang boleh hilang, dalam jam","Anggaran untuk pemulihan","Waktu maksimum yang dapat diterima untuk memulihkan layanan setelah insiden","Jumlah salinan backup yang diwajibkan"],"RTO adalah target waktu henti maksimum. RPO (Recovery Point Objective) menentukan kehilangan data yang dapat diterima dalam ukuran waktu."]},
+{s:1,c:"Dasar & Ancaman",a:1,
+ en:["A zero-day vulnerability is…",["A vulnerability that is fixed within one day","A vulnerability unknown to the vendor with no patch available yet","A virus that activates at midnight","A vulnerability with zero impact"],"Zero-day flaws are unknown to the vendor (or unpatched), so defenders have had 'zero days' to prepare — making them high risk."],
+ id:["Kerentanan zero-day adalah…",["Kerentanan yang diperbaiki dalam satu hari","Kerentanan yang belum diketahui vendor dan belum ada patch-nya","Virus yang aktif tengah malam","Kerentanan yang dampaknya nol"],"Celah zero-day belum diketahui vendor/belum ditambal, sehingga pihak bertahan punya 'nol hari' untuk bersiap — risikonya tinggi."]}
+];
+</script>
+
+<script>
+"use strict";
+QUESTIONS.push(
+/* ---------- SET 2 (24) ---------- */
+{s:2,c:"Dasar & Ancaman",a:2,
+ en:["An attacker captures network traffic to read unencrypted usernames and passwords. This violates which CIA principle and uses which technique?",["Integrity — SQL injection","Availability — DDoS","Confidentiality — Sniffing","Integrity — Phishing"],"Sniffing unencrypted traffic exposes data to unauthorized parties, breaking confidentiality. Use encryption (HTTPS/SSH) to prevent it."],
+ id:["Penyerang menangkap lalu lintas jaringan untuk membaca username dan kata sandi yang tidak terenkripsi. Ini melanggar prinsip CIA apa dan memakai teknik apa?",["Integritas — SQL injection","Ketersediaan — DDoS","Kerahasiaan — Sniffing","Integritas — Phishing"],"Sniffing terhadap lalu lintas tak terenkripsi membocorkan data ke pihak tak berwenang, melanggar confidentiality. Cegah dengan enkripsi (HTTPS/SSH)."]},
+{s:2,c:"Dasar & Ancaman",a:0,
+ en:["What makes a worm different from a virus?",["A worm self-replicates and spreads without needing a host file or human action","A worm only infects mobile phones","A virus spreads by itself, a worm cannot","A worm is harmless"],"Worms spread automatically across networks. Viruses attach to host files/programs and usually need user action to spread."],
+ id:["Apa yang membedakan worm dari virus?",["Worm menggandakan diri dan menyebar tanpa butuh file inang atau tindakan manusia","Worm hanya menginfeksi ponsel","Virus menyebar sendiri, worm tidak bisa","Worm tidak berbahaya"],"Worm menyebar otomatis lewat jaringan. Virus menempel pada file/program inang dan umumnya butuh tindakan pengguna untuk menyebar."]},
+{s:2,c:"Ethical Hacking",a:1,
+ en:["During enumeration, an attacker collects valid usernames, shares, and service details. Enumeration belongs to which phase and typically follows…",["Clearing tracks; it is the last phase","The scanning phase; it actively connects to the target","Reconnaissance; no connection is made","Gaining access; exploitation is complete"],"Enumeration is an active step after scanning, extracting detailed information by connecting to services on the target."],
+ id:["Saat enumeration, penyerang mengumpulkan username valid, share, dan detail layanan. Enumeration termasuk fase apa dan umumnya mengikuti fase…",["Clearing tracks; fase terakhir","Fase scanning; terhubung aktif ke target","Reconnaissance; tanpa koneksi sama sekali","Gaining access; eksploitasi sudah selesai"],"Enumeration adalah langkah aktif setelah scanning, menggali informasi detail dengan terhubung ke layanan target."]},
+{s:2,c:"Ethical Hacking",a:3,
+ en:["In Nmap, which option detects the version of services running on open ports?",["-sn","-Pn","-p-","-sV"],"-sV probes open ports to determine service and version information. -p- scans all 65,535 ports; -Pn skips host discovery."],
+ id:["Di Nmap, opsi apa yang mendeteksi versi layanan yang berjalan pada port terbuka?",["-sn","-Pn","-p-","-sV"],"-sV memeriksa port terbuka untuk mengetahui layanan dan versinya. -p- memindai semua 65.535 port; -Pn melewati host discovery."]},
+{s:2,c:"Jaringan",a:1,
+ en:["Which port and protocol are used by DNS for standard name resolution queries?",["TCP 443","UDP 53","TCP 53 only, never UDP","UDP 161"],"DNS queries normally use UDP port 53 (TCP 53 is used for zone transfers and large responses). UDP 161 is SNMP."],
+ id:["Port dan protokol apa yang dipakai DNS untuk query resolusi nama standar?",["TCP 443","UDP 53","Hanya TCP 53, tidak pernah UDP","UDP 161"],"Query DNS umumnya memakai UDP port 53 (TCP 53 untuk zone transfer dan respons besar). UDP 161 adalah SNMP."]},
+{s:2,c:"Jaringan",a:2,
+ en:["A VPN protects remote workers mainly by…",["Blocking all websites","Increasing internet speed","Creating an encrypted tunnel over a public network","Removing the need for passwords"],"A VPN encrypts traffic inside a tunnel across the internet, protecting data from eavesdropping on untrusted networks."],
+ id:["VPN melindungi pekerja jarak jauh terutama dengan cara…",["Memblokir semua situs web","Meningkatkan kecepatan internet","Membuat terowongan (tunnel) terenkripsi melalui jaringan publik","Menghilangkan kebutuhan kata sandi"],"VPN mengenkripsi lalu lintas dalam sebuah tunnel melintasi internet, melindungi data dari penyadapan di jaringan tak tepercaya."]},
+{s:2,c:"Risiko & Aset",a:3,
+ en:["Paying for cyber-insurance so a third party bears part of the financial impact is an example of risk…",["Avoidance","Acceptance","Mitigation","Transfer"],"Risk transfer shifts part of the impact to another party (e.g. insurance). Mitigation reduces likelihood/impact; acceptance keeps the risk; avoidance removes the activity."],
+ id:["Membeli asuransi siber agar pihak ketiga menanggung sebagian dampak finansial adalah contoh perlakuan risiko…",["Penghindaran (Avoidance)","Penerimaan (Acceptance)","Mitigasi (Mitigation)","Transfer (Pengalihan)"],"Risk transfer mengalihkan sebagian dampak ke pihak lain (mis. asuransi). Mitigasi mengurangi kemungkinan/dampak; acceptance menerima risiko; avoidance menghilangkan aktivitasnya."]},
+{s:2,c:"Risiko & Aset",a:0,
+ en:["Why is asset classification (e.g. public, internal, confidential) important?",["So protection controls can match the sensitivity of each asset","To make all data public","Classification replaces the need for passwords","Only auditors need it"],"Classification ensures sensitive assets get stronger controls (encryption, restricted access) while public data stays accessible."],
+ id:["Mengapa klasifikasi aset (mis. publik, internal, rahasia) itu penting?",["Agar kontrol perlindungan sesuai dengan tingkat sensitivitas tiap aset","Agar semua data menjadi publik","Klasifikasi menggantikan kebutuhan kata sandi","Hanya auditor yang membutuhkannya"],"Klasifikasi memastikan aset sensitif mendapat kontrol lebih kuat (enkripsi, akses terbatas) sementara data publik tetap mudah diakses."]},
+{s:2,c:"Data & Kriptografi",a:1,
+ en:["In asymmetric encryption, data encrypted with a person's public key can only be decrypted with…",["The same public key","That person's matching private key","Any user's private key","A shared password"],"Public/private keys are a matched pair: what the public key encrypts, only the corresponding private key can decrypt."],
+ id:["Dalam enkripsi asimetris, data yang dienkripsi dengan kunci publik seseorang hanya bisa didekripsi dengan…",["Kunci publik yang sama","Kunci privat pasangan orang tersebut","Kunci privat pengguna mana pun","Kata sandi bersama"],"Kunci publik/privat adalah pasangan: yang dienkripsi kunci publik hanya bisa dibuka oleh kunci privat pasangannya."]},
+{s:2,c:"Data & Kriptografi",a:2,
+ en:["A digital signature primarily provides…",["Faster file downloads","Data compression","Authenticity and integrity of a message or document","Anonymous browsing"],"A signature proves who signed the data and that it was not altered (authenticity + integrity, supporting non-repudiation)."],
+ id:["Tanda tangan digital terutama memberikan…",["Unduhan file yang lebih cepat","Kompresi data","Keaslian dan integritas pesan atau dokumen","Penjelajahan anonim"],"Tanda tangan digital membuktikan siapa penandatangannya dan bahwa data tidak diubah (keaslian + integritas, mendukung non-repudiation)."]},
+{s:2,c:"Web & Nirkabel",a:0,
+ en:["In a session hijacking attack, the attacker…",["Steals or predicts a valid session ID/token to impersonate a logged-in user","Changes the website's DNS record","Deletes the server's log files","Cracks the Wi-Fi password"],"By reusing a stolen session token, the attacker is treated as the legitimate user without needing their password. Defenses: HTTPS, secure cookies, session timeouts."],
+ id:["Dalam serangan session hijacking, penyerang…",["Mencuri atau menebak session ID/token yang valid untuk menyamar sebagai pengguna yang sudah login","Mengubah record DNS situs web","Menghapus file log server","Memecahkan kata sandi Wi-Fi"],"Dengan memakai ulang token sesi curian, penyerang dianggap sebagai pengguna sah tanpa perlu kata sandinya. Pencegahan: HTTPS, secure cookie, timeout sesi."]},
+{s:2,c:"Web & Nirkabel",a:1,
+ en:["CSRF (Cross-Site Request Forgery) tricks a logged-in user's browser into…",["Revealing its stored passwords","Sending an unwanted forged request to a trusted site","Downloading a virus automatically","Sharing its session cookie publicly"],"CSRF exploits the trust a site has in the user's browser: a malicious page causes the browser to send authenticated requests the user never intended."],
+ id:["CSRF (Cross-Site Request Forgery) menipu browser pengguna yang sedang login untuk…",["Membocorkan kata sandi tersimpannya","Mengirim permintaan palsu yang tidak diinginkan ke situs tepercaya","Mengunduh virus secara otomatis","Membagikan cookie sesinya ke publik"],"CSRF memanfaatkan kepercayaan situs pada browser pengguna: halaman jahat membuat browser mengirim permintaan terautentikasi yang tidak pernah dikehendaki pengguna."]},
+{s:2,c:"Ethical Hacking",a:2,
+ en:["Kali Linux is best described as…",["A commercial antivirus suite","A Windows server edition","A Linux distribution preloaded with penetration-testing tools","A cloud storage platform"],"Kali Linux (by Offensive Security) bundles tools such as Nmap, Metasploit, Wireshark, and Burp Suite for authorized security testing."],
+ id:["Kali Linux paling tepat digambarkan sebagai…",["Paket antivirus komersial","Edisi Windows Server","Distribusi Linux yang berisi perangkat penetration testing","Platform penyimpanan cloud"],"Kali Linux (dari Offensive Security) berisi alat seperti Nmap, Metasploit, Wireshark, dan Burp Suite untuk pengujian keamanan berizin."]},
+{s:2,c:"OS & Server",a:3,
+ en:["Metasploitable2 is intentionally vulnerable. When practicing with it in VirtualBox, the safest network setting is…",["Bridged Adapter on the school network","NAT with port forwarding from the internet","No network at all, it cannot be used","Host-only Adapter, isolated from the real network"],"Metasploitable is deliberately full of vulnerabilities; host-only networking keeps it reachable from your Kali VM but isolated from the real network."],
+ id:["Metasploitable2 sengaja dibuat rentan. Saat berlatih dengannya di VirtualBox, pengaturan jaringan paling aman adalah…",["Bridged Adapter di jaringan sekolah","NAT dengan port forwarding dari internet","Tanpa jaringan sama sekali, jadi tidak bisa dipakai","Host-only Adapter, terisolasi dari jaringan nyata"],"Metasploitable sengaja penuh kerentanan; jaringan host-only membuatnya terjangkau dari VM Kali Anda tetapi terisolasi dari jaringan nyata."]},
+{s:2,c:"Dasar & Ancaman",a:1,
+ en:["A dictionary attack differs from a pure brute-force attack because it…",["Uses physical force on the server","Tries words from a prebuilt list of likely passwords","Never targets user accounts","Is a type of phishing"],"Brute force tries every combination; a dictionary attack tries likely words/password lists (e.g. rockyou.txt), making it faster against weak passwords."],
+ id:["Serangan dictionary berbeda dari brute force murni karena…",["Memakai kekerasan fisik pada server","Mencoba kata-kata dari daftar kata sandi yang mungkin dipakai","Tidak pernah menargetkan akun pengguna","Merupakan jenis phishing"],"Brute force mencoba semua kombinasi; dictionary attack mencoba daftar kata/kata sandi yang mungkin (mis. rockyou.txt), lebih cepat melawan kata sandi lemah."]},
+{s:2,c:"Jaringan",a:0,
+ en:["In a Man-in-the-Middle (MitM) attack, the attacker…",["Secretly positions themselves between two parties to intercept or alter communication","Physically steals the server","Shuts down the power supply","Installs antivirus on the victim's PC"],"MitM lets attackers eavesdrop or tamper with traffic between a user and a service. Encryption and certificate validation are key defenses."],
+ id:["Dalam serangan Man-in-the-Middle (MitM), penyerang…",["Secara diam-diam menempatkan diri di antara dua pihak untuk menyadap atau mengubah komunikasi","Mencuri server secara fisik","Mematikan pasokan listrik","Menginstal antivirus di PC korban"],"MitM memungkinkan penyerang menyadap atau mengubah lalu lintas antara pengguna dan layanan. Enkripsi dan validasi sertifikat adalah pertahanan utamanya."]},
+{s:2,c:"OS & Server",a:2,
+ en:["The principle of least privilege means users and programs should have…",["Administrator access by default","Access to all systems, just in case","Only the minimum access needed to do their job","No access at all"],"Least privilege limits damage from compromised accounts and errors by granting only necessary permissions."],
+ id:["Prinsip least privilege berarti pengguna dan program hanya memiliki…",["Akses administrator secara default","Akses ke semua sistem, untuk jaga-jaga","Akses minimum yang dibutuhkan untuk pekerjaannya","Tidak ada akses sama sekali"],"Least privilege membatasi kerusakan akibat akun yang dibobol atau kesalahan, dengan memberi hanya izin yang diperlukan."]},
+{s:2,c:"OS & Server",a:1,
+ en:["Why is regular patch management critical for server security?",["Patches make the server slower but prettier","Many attacks exploit known vulnerabilities that patches already fix","Patching removes the need for backups","Patches are only cosmetic updates"],"Attackers routinely exploit published, already-patched vulnerabilities on systems whose owners delayed updating — patching closes those known holes."],
+ id:["Mengapa patch management rutin sangat penting bagi keamanan server?",["Patch membuat server lebih lambat tapi lebih indah","Banyak serangan mengeksploitasi kerentanan yang sudah ada perbaikannya di patch","Patch menghilangkan kebutuhan backup","Patch hanyalah pembaruan kosmetik"],"Penyerang rutin mengeksploitasi kerentanan yang sudah dipublikasikan dan sudah ada patch-nya pada sistem yang menunda pembaruan — patch menutup celah yang diketahui itu."]},
+{s:2,c:"Etika & Budaya",a:3,
+ en:["A student finds a vulnerability in the school system and reports it privately to the IT admin without exploiting it. This is an example of…",["Black-hat hacking","Data theft","Cyber vandalism","Responsible disclosure and ethical behavior"],"Reporting a flaw through proper channels without abusing it is responsible disclosure — the behavior expected of ethical hackers."],
+ id:["Seorang siswa menemukan kerentanan di sistem sekolah dan melaporkannya secara pribadi ke admin IT tanpa mengeksploitasinya. Ini adalah contoh…",["Black-hat hacking","Pencurian data","Vandalisme siber","Responsible disclosure dan perilaku etis"],"Melaporkan celah melalui jalur yang benar tanpa menyalahgunakannya adalah responsible disclosure — perilaku yang diharapkan dari ethical hacker."]},
+{s:2,c:"Web & Nirkabel",a:0,
+ en:["What is the most common reason IoT devices (CCTV, smart TVs) get compromised?",["They still use factory default usernames and passwords","They are too expensive","They use too much bandwidth","They cannot be updated at all"],"Default credentials are publicly documented; attackers scan for devices still using them. Always change defaults and update firmware."],
+ id:["Apa penyebab paling umum perangkat IoT (CCTV, smart TV) berhasil dibobol?",["Masih memakai username dan kata sandi bawaan pabrik","Harganya terlalu mahal","Memakai bandwidth terlalu besar","Tidak bisa diperbarui sama sekali"],"Kredensial bawaan terdokumentasi publik; penyerang memindai perangkat yang masih memakainya. Selalu ganti kata sandi bawaan dan perbarui firmware."]},
+{s:2,c:"Jaringan",a:2,
+ en:["In the cloud shared-responsibility model, who is responsible for securing the data and user accounts stored in a cloud service?",["Only the cloud provider","Only the internet provider","The customer (user organization) is responsible for its data and accounts","Nobody"],"Providers secure the cloud infrastructure; customers remain responsible for their data, configurations, and account security."],
+ id:["Dalam model shared responsibility di cloud, siapa yang bertanggung jawab mengamankan data dan akun pengguna yang disimpan di layanan cloud?",["Hanya penyedia cloud","Hanya penyedia internet","Pelanggan (organisasi pengguna) bertanggung jawab atas data dan akunnya","Tidak ada yang bertanggung jawab"],"Penyedia mengamankan infrastruktur cloud; pelanggan tetap bertanggung jawab atas data, konfigurasi, dan keamanan akunnya."]},
+{s:2,c:"Insiden & Pemulihan",a:1,
+ en:["What is the purpose of a SIEM tool such as Wazuh?",["To design website layouts","To collect and correlate logs to detect security events","To replace all firewalls","To create user passwords"],"SIEM platforms aggregate logs from many sources, correlate events, and alert on suspicious activity — Wazuh is an open-source example used in the training lab."],
+ id:["Apa tujuan alat SIEM seperti Wazuh?",["Merancang tampilan situs web","Mengumpulkan dan mengorelasikan log untuk mendeteksi kejadian keamanan","Menggantikan semua firewall","Membuat kata sandi pengguna"],"Platform SIEM mengumpulkan log dari banyak sumber, mengorelasikannya, dan memberi peringatan atas aktivitas mencurigakan — Wazuh adalah contoh open-source yang dipakai di lab pelatihan."]},
+{s:2,c:"Insiden & Pemulihan",a:3,
+ en:["After a ransomware incident, what should be done BEFORE reconnecting restored systems to the network?",["Announce that everything is safe","Delete all log files","Pay the ransom immediately","Make sure the malware is eradicated and the entry point is closed"],"Reconnecting too early can re-trigger the infection. Eradication and closing the initial access vector must come before recovery."],
+ id:["Setelah insiden ransomware, apa yang harus dilakukan SEBELUM menghubungkan kembali sistem yang dipulihkan ke jaringan?",["Mengumumkan bahwa semuanya sudah aman","Menghapus semua file log","Segera membayar tebusan","Memastikan malware sudah dieradikasi dan pintu masuk awal sudah ditutup"],"Menghubungkan terlalu cepat dapat memicu infeksi ulang. Eradikasi dan penutupan vektor akses awal harus dilakukan sebelum pemulihan."]},
+{s:2,c:"Ethical Hacking",a:0,
+ en:["Which of these tools is a web proxy used to intercept and modify HTTP/HTTPS traffic during web penetration testing?",["Burp Suite","Nessus","Wazuh","VirtualBox"],"Burp Suite intercepts browser traffic so testers can inspect and modify requests/responses when assessing web applications."],
+ id:["Alat mana yang merupakan web proxy untuk mencegat dan memodifikasi lalu lintas HTTP/HTTPS saat penetration testing web?",["Burp Suite","Nessus","Wazuh","VirtualBox"],"Burp Suite mencegat lalu lintas browser sehingga penguji dapat memeriksa dan memodifikasi request/response saat menilai aplikasi web."]}
+);
+</script>
+
+<script>
+"use strict";
+QUESTIONS.push(
+/* ---------- SET 3 — bank soal tambahan untuk Simulasi Penuh 75 soal (21) ---------- */
+{s:3,c:"Jaringan",a:1,
+ en:["Which port is used by SSH (Secure Shell) for secure remote login by default?",["21","22","23","3389"],"SSH uses TCP port 22. Port 21 is FTP, 23 is Telnet (insecure), and 3389 is RDP."],
+ id:["Port berapa yang dipakai SSH (Secure Shell) untuk login jarak jauh yang aman secara default?",["21","22","23","3389"],"SSH memakai TCP port 22. Port 21 untuk FTP, 23 untuk Telnet (tidak aman), dan 3389 untuk RDP."]},
+{s:3,c:"Jaringan",a:2,
+ en:["At which layer of the OSI model does the IP protocol operate?",["Physical layer","Data Link layer","Network layer","Application layer"],"IP operates at the Network layer (Layer 3), which handles addressing and routing between networks. Ethernet/MAC addresses work at Layer 2."],
+ id:["Pada layer berapa model OSI protokol IP beroperasi?",["Layer Physical","Layer Data Link","Layer Network","Layer Application"],"IP beroperasi pada Layer Network (Layer 3) yang menangani pengalamatan dan routing antarjaringan. Alamat MAC/Ethernet bekerja di Layer 2."]},
+{s:3,c:"Dasar & Ancaman",a:2,
+ en:["A Trojan horse is best described as malware that…",["Encrypts files and demands a ransom","Spreads automatically across networks without a host file","Appears as legitimate software but performs malicious actions in the background","Only infects network routers"],"A Trojan disguises itself as useful or harmless software to trick users into installing it, then carries out malicious actions."],
+ id:["Trojan horse paling tepat digambarkan sebagai malware yang…",["Mengenkripsi file dan meminta tebusan","Menyebar otomatis lewat jaringan tanpa file inang","Tampak seperti perangkat lunak yang sah tetapi melakukan tindakan berbahaya di latar belakang","Hanya menginfeksi router jaringan"],"Trojan menyamar sebagai perangkat lunak yang berguna atau tidak berbahaya untuk menipu pengguna agar menginstalnya, lalu melakukan tindakan berbahaya."]},
+{s:3,c:"Dasar & Ancaman",a:0,
+ en:["Malware that secretly records every keystroke typed by a user in order to steal passwords is called a…",["Keylogger","Ransomware","Adware","Firewall"],"A keylogger is a type of spyware that captures keyboard input, often used to steal credentials. Strong passwords alone do not stop it; endpoint protection and MFA help."],
+ id:["Malware yang diam-diam merekam setiap ketikan pengguna untuk mencuri kata sandi disebut…",["Keylogger","Ransomware","Adware","Firewall"],"Keylogger adalah jenis spyware yang menangkap input keyboard, sering dipakai untuk mencuri kredensial. Kata sandi kuat saja tidak menghentikannya; perlindungan endpoint dan MFA membantu."]},
+{s:3,c:"Ethical Hacking",a:3,
+ en:["In Nmap, which option enables operating system detection?",["-sn","-sV","-Pn","-O"],"-O enables OS detection by analyzing responses from the target. -sV detects service versions and -sn is a ping scan without port scanning."],
+ id:["Di Nmap, opsi apa yang mengaktifkan deteksi sistem operasi?",["-sn","-sV","-Pn","-O"],"-O mengaktifkan deteksi OS dengan menganalisis respons dari target. -sV mendeteksi versi layanan dan -sn adalah ping scan tanpa port scan."]},
+{s:3,c:"Ethical Hacking",a:1,
+ en:["Using advanced Google search operators such as site:, inurl:, and filetype: to find exposed sensitive information is known as…",["Password spraying","Google hacking (Google dorking)","ARP poisoning","Pharming"],"Google dorking uses crafted search queries to find publicly exposed files, login pages, and misconfigured services during footprinting."],
+ id:["Menggunakan operator pencarian Google lanjutan seperti site:, inurl:, dan filetype: untuk menemukan informasi sensitif yang terekspos dikenal sebagai…",["Password spraying","Google hacking (Google dorking)","ARP poisoning","Pharming"],"Google dorking memakai query pencarian khusus untuk menemukan file, halaman login, dan layanan salah konfigurasi yang terekspos publik saat footprinting."]},
+{s:3,c:"Data & Kriptografi",a:0,
+ en:["Which of the following is an asymmetric encryption algorithm?",["RSA","AES","DES","3DES"],"RSA uses a public/private key pair, so it is asymmetric. AES, DES, and 3DES are symmetric algorithms that use one shared key."],
+ id:["Manakah yang merupakan algoritma enkripsi asimetris?",["RSA","AES","DES","3DES"],"RSA memakai pasangan kunci publik/privat, sehingga termasuk asimetris. AES, DES, dan 3DES adalah algoritma simetris dengan satu kunci bersama."]},
+{s:3,c:"Data & Kriptografi",a:2,
+ en:["Which of the following is a cryptographic hash function commonly used to verify file integrity?",["AES-256","RSA-2048","SHA-256","WPA3"],"SHA-256 produces a fixed-length hash (fingerprint). If a downloaded file hash matches the published value, the file has not been altered."],
+ id:["Manakah yang merupakan fungsi hash kriptografi yang umum dipakai untuk memverifikasi integritas file?",["AES-256","RSA-2048","SHA-256","WPA3"],"SHA-256 menghasilkan hash (sidik jari) berukuran tetap. Jika hash file unduhan sama dengan nilai yang dipublikasikan, file tersebut tidak diubah."]},
+{s:3,c:"Insiden & Pemulihan",a:1,
+ en:["RPO (Recovery Point Objective) defines…",["The maximum acceptable downtime after an incident","The maximum amount of data loss, measured in time, that is acceptable","The number of backup copies that must be kept","The time needed to detect an incident"],"RPO sets how far back in time data can be lost, e.g. an RPO of 4 hours means backups must be no older than 4 hours. RTO covers downtime instead."],
+ id:["RPO (Recovery Point Objective) adalah…",["Waktu henti maksimum yang dapat diterima setelah insiden","Jumlah kehilangan data maksimum, diukur dalam waktu, yang dapat diterima","Jumlah salinan backup yang wajib disimpan","Waktu yang dibutuhkan untuk mendeteksi insiden"],"RPO menentukan seberapa jauh data boleh hilang dalam ukuran waktu, mis. RPO 4 jam berarti backup tidak boleh lebih tua dari 4 jam. RTO mengatur waktu henti."]},
+{s:3,c:"Insiden & Pemulihan",a:3,
+ en:["What is the main purpose of the lessons learned phase after an incident is resolved?",["To punish the employee who caused the incident","To delete all incident log files","To pay the attacker so it does not happen again","To evaluate what happened and improve future incident response"],"Lessons learned reviews the incident handling, documents weaknesses, and improves procedures, tools, and training for the next incident."],
+ id:["Apa tujuan utama fase lessons learned setelah insiden selesai ditangani?",["Menghukum pegawai yang menyebabkan insiden","Menghapus semua file log insiden","Membayar penyerang agar tidak terulang","Mengevaluasi apa yang terjadi dan memperbaiki penanganan insiden di masa depan"],"Lessons learned meninjau penanganan insiden, mendokumentasikan kelemahan, dan memperbaiki prosedur, alat, dan pelatihan untuk insiden berikutnya."]},
+{s:3,c:"OS & Server",a:0,
+ en:["On Linux, which command displays the currently running processes?",["ps aux","chmod 777","rm -rf","mkdir data"],"ps (often ps aux) lists running processes with their users and resource usage. top shows the same information in real time."],
+ id:["Di Linux, perintah apa yang menampilkan proses yang sedang berjalan?",["ps aux","chmod 777","rm -rf","mkdir data"],"ps (umumnya ps aux) menampilkan proses yang berjalan beserta pengguna dan penggunaan sumber dayanya. top menampilkan informasi yang sama secara real-time."]},
+{s:3,c:"Web & Nirkabel",a:1,
+ en:["An evil twin attack in a wireless network involves…",["Upgrading the access point firmware","Setting up a fake Wi-Fi access point with a name similar to a legitimate one to trick users into connecting","Changing the Wi-Fi password every day","Blocking all guest users"],"Victims who connect to the evil twin may have their traffic intercepted. Always verify the network name and prefer VPN on public Wi-Fi."],
+ id:["Serangan evil twin pada jaringan nirkabel melibatkan…",["Memperbarui firmware access point","Membuat access point Wi-Fi palsu dengan nama mirip jaringan yang sah untuk menipu pengguna agar terhubung","Mengganti kata sandi Wi-Fi setiap hari","Memblokir semua pengguna tamu"],"Korban yang terhubung ke evil twin dapat disadap lalu lintas datanya. Selalu verifikasi nama jaringan dan utamakan VPN di Wi-Fi publik."]},
+{s:3,c:"Web & Nirkabel",a:2,
+ en:["An attacker changes a URL to include ../ sequences to access files outside the web server root directory. This attack is…",["Cross-Site Scripting (XSS)","SQL Injection","Directory Traversal","Cross-Site Request Forgery (CSRF)"],"Directory (path) traversal exploits insufficient input validation to read files outside the intended folder, such as system password files."],
+ id:["Penyerang mengubah URL dengan menyisipkan urutan ../ untuk mengakses file di luar direktori root web server. Serangan ini adalah…",["Cross-Site Scripting (XSS)","SQL Injection","Directory Traversal","Cross-Site Request Forgery (CSRF)"],"Directory (path) traversal mengeksploitasi validasi input yang lemah untuk membaca file di luar folder yang diizinkan, misalnya file kata sandi sistem."]},
+{s:3,c:"Jaringan",a:0,
+ en:["An attacker sends forged ARP messages to link their MAC address with the gateway IP address so that traffic passes through them. This technique is…",["ARP spoofing / poisoning","SQL Injection","Brute force","Port scanning"],"ARP poisoning corrupts the ARP cache so victims send traffic to the attacker, enabling a Man-in-the-Middle position on the local network."],
+ id:["Penyerang mengirim pesan ARP palsu untuk mengaitkan alamat MAC-nya dengan alamat IP gateway sehingga lalu lintas melewati dirinya. Teknik ini adalah…",["ARP spoofing / poisoning","SQL Injection","Brute force","Port scanning"],"ARP poisoning merusak cache ARP sehingga korban mengirim lalu lintas ke penyerang, menciptakan posisi Man-in-the-Middle di jaringan lokal."]},
+{s:3,c:"Risiko & Aset",a:1,
+ en:["In risk terminology, a vulnerability is…",["An attacker who exploits a system","A weakness in a system, process, or control that can be exploited by a threat","The financial loss caused by an incident","A tool that blocks all attacks"],"A vulnerability is the weakness itself, such as unpatched software. A threat is the actor or event that may exploit it; together with likelihood and impact they form risk."],
+ id:["Dalam istilah risiko, kerentanan (vulnerability) adalah…",["Penyerang yang mengeksploitasi sistem","Kelemahan pada sistem, proses, atau kontrol yang dapat dieksploitasi oleh ancaman","Kerugian finansial akibat insiden","Alat yang memblokir semua serangan"],"Vulnerability adalah kelemahannya itu sendiri, misalnya perangkat lunak yang belum di-patch. Threat adalah pelaku atau kejadian yang dapat mengeksploitasinya; bersama kemungkinan dan dampak, ketiganya membentuk risiko."]},
+{s:3,c:"Risiko & Aset",a:2,
+ en:["Installing endpoint protection, applying patches, and enabling a firewall to reduce the likelihood or impact of an attack are examples of risk…",["Avoidance","Transfer","Mitigation","Acceptance"],"Mitigation applies controls that lower likelihood or impact. Transfer shifts impact to a third party, acceptance keeps the risk, and avoidance removes the risky activity."],
+ id:["Menginstal perlindungan endpoint, menerapkan patch, dan mengaktifkan firewall untuk mengurangi kemungkinan atau dampak serangan adalah contoh perlakuan risiko…",["Penghindaran (Avoidance)","Transfer (Pengalihan)","Mitigasi (Mitigation)","Penerimaan (Acceptance)"],"Mitigasi menerapkan kontrol yang menurunkan kemungkinan atau dampak. Transfer mengalihkan dampak ke pihak ketiga, acceptance menerima risikonya, dan avoidance menghilangkan aktivitas berisikonya."]},
+{s:3,c:"Etika & Budaya",a:3,
+ en:["A grey-hat hacker is someone who…",["Always works with full written permission and only for defense","Hacks only to steal money and data","Is a beginner who only runs ready-made scripts","Sometimes tests systems without permission, but without malicious intent to cause damage or steal"],"Grey hats fall between white hats (fully authorized) and black hats (malicious). Testing without permission can still be illegal even without bad intent."],
+ id:["Grey-hat hacker adalah seseorang yang…",["Selalu bekerja dengan izin tertulis penuh dan hanya untuk pertahanan","Meretas hanya untuk mencuri uang dan data","Pemula yang hanya menjalankan skrip jadi","Kadang menguji sistem tanpa izin, tetapi tanpa niat jahat untuk merusak atau mencuri"],"Grey hat berada di antara white hat (sepenuhnya berizin) dan black hat (berniat jahat). Menguji tanpa izin tetap dapat melanggar hukum meski tanpa niat buruk."]},
+{s:3,c:"Ethical Hacking",a:0,
+ en:["Privilege escalation occurs when an attacker…",["Gains higher-level access than authorized, for example from a normal user to administrator or root","Logs in using their own standard account","Changes their own password before it expires","Installs an antivirus on the target"],"Privilege escalation exploits flaws or misconfigurations to raise permissions, turning a limited foothold into full system control."],
+ id:["Privilege escalation terjadi ketika penyerang…",["Mendapatkan akses lebih tinggi dari yang diizinkan, misalnya dari pengguna biasa menjadi administrator atau root","Login memakai akun standarnya sendiri","Mengganti kata sandinya sendiri sebelum kedaluwarsa","Menginstal antivirus di target"],"Privilege escalation mengeksploitasi celah atau kesalahan konfigurasi untuk menaikkan hak akses, mengubah pijakan terbatas menjadi kendali penuh atas sistem."]},
+{s:3,c:"Jaringan",a:2,
+ en:["In network design, a DMZ (demilitarized zone) is used to…",["Store offline backups","Encrypt the internal database","Host public-facing services in an isolated segment between the internet and the internal network","Replace the firewall completely"],"A DMZ isolates servers that must be reachable from the internet (web, mail) so that if one is compromised, the internal network stays protected."],
+ id:["Dalam desain jaringan, DMZ (demilitarized zone) digunakan untuk…",["Menyimpan backup offline","Mengenkripsi database internal","Menempatkan layanan yang menghadap publik pada segmen terisolasi antara internet dan jaringan internal","Menggantikan firewall sepenuhnya"],"DMZ mengisolasi server yang harus dapat dijangkau dari internet (web, email) sehingga jika salah satunya dibobol, jaringan internal tetap terlindungi."]},
+{s:3,c:"Data & Kriptografi",a:1,
+ en:["Steganography is the practice of…",["Encrypting files with AES","Hiding a secret message or file inside another file, such as an image, so that its existence is concealed","Hashing passwords before storage","Blocking suspicious network traffic"],"Unlike encryption, which makes content unreadable, steganography hides the fact that secret data exists at all, for example inside a picture file."],
+ id:["Steganografi adalah praktik…",["Mengenkripsi file dengan AES","Menyembunyikan pesan atau file rahasia di dalam file lain, seperti gambar, sehingga keberadaannya tidak terlihat","Melakukan hashing kata sandi sebelum disimpan","Memblokir lalu lintas jaringan yang mencurigakan"],"Berbeda dengan enkripsi yang membuat isi tidak terbaca, steganografi menyembunyikan fakta bahwa data rahasia itu ada, misalnya di dalam file gambar."]},
+{s:3,c:"Dasar & Ancaman",a:3,
+ en:["A botnet is…",["A single antivirus program on a server","A type of firewall rule","A secure network for backups","A network of compromised devices controlled remotely by an attacker, often used for DDoS attacks or spam"],"Botnets consist of many infected devices (bots) under one controller. They are a common source of large DDoS attacks."],
+ id:["Botnet adalah…",["Satu program antivirus di server","Salah satu jenis aturan firewall","Jaringan aman untuk backup","Jaringan perangkat yang telah dibobol dan dikendalikan jarak jauh oleh penyerang, sering dipakai untuk serangan DDoS atau spam"],"Botnet terdiri dari banyak perangkat terinfeksi (bot) di bawah satu pengendali. Botnet adalah sumber umum serangan DDoS besar."]}
+);
+</script>
+
+<script>
+"use strict";
+/* ================= APP LOGIC ================= */
+var $ = function(id){ return document.getElementById(id); };
+var LETTERS = ["A","B","C","D"];
+var userName = "";
+var langMode = "both"; /* en | id | both */
+var S = null;          /* active session */
+var pendingStart = null;
+var lastResult = null;
+
+var MODES = {
+  set1:{label:"Set 1 — Exam Simulation / Simulasi Ujian", minutes:60, study:false},
+  set2:{label:"Set 2 — Exam Simulation / Simulasi Ujian", minutes:50, study:false},
+  full:{label:"Full Simulation — Real Exam Format / Simulasi Penuh — Format Ujian Asli", minutes:120, study:false},
+  study:{label:"Study Mode / Mode Belajar", minutes:0, study:true},
+  topic:{label:"Topic Practice / Latihan Topik", minutes:0, study:true}
+};
+
+function show(id){
+  ["scr-login","scr-home","scr-exam","scr-result"].forEach(function(s){ $(s).classList.toggle("hidden", s!==id); });
+  window.scrollTo(0,0);
+}
+function shuffle(arr){ var a=arr.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+function fmtTime(sec){ sec=Math.max(0,sec); var m=Math.floor(sec/60), s=sec%60; return m+":"+(s<10?"0":"")+s; }
+function esc(t){ var d=document.createElement("div"); d.textContent=t; return d.innerHTML; }
+/* bilingual text: returns HTML with primary + secondary line according to langMode */
+function bi(en, id){
+  if(langMode==="en") return esc(en);
+  if(langMode==="id") return esc(id);
+  return esc(en) + '<span class="qalt">' + esc(id) + "</span>";
+}
+function biOpt(en, id){
+  if(langMode==="en") return esc(en);
+  if(langMode==="id") return esc(id);
+  return esc(en) + '<span class="oalt">' + esc(id) + "</span>";
+}
+
+/* ---------- countdown to real exam (Sat 28 Nov 2026) ---------- */
+(function(){
+  var target = new Date(2026,10,28,8,0,0); var now = new Date();
+  var days = Math.ceil((target - now) / 86400000);
+  $("cd-days").textContent = days > 0 ? days : 0;
+})();
+
+/* ---------- login ---------- */
+$("login-form").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  var name = $("inp-name").value.trim().replace(/\s+/g," ");
+  if(name.length < 3){ $("login-err").textContent = "Mohon isi nama lengkap Anda (minimal 3 karakter). / Please enter your full name."; $("inp-name").focus(); return; }
+  $("login-err").textContent = "";
+  userName = name;
+  $("home-name").textContent = userName;
+  show("scr-home");
+});
+$("btn-change-name").addEventListener("click", function(){ show("scr-login"); });
+
+/* ---------- topic chips ---------- */
+(function(){
+  var counts = {};
+  QUESTIONS.forEach(function(q){ counts[q.c]=(counts[q.c]||0)+1; });
+  var box = $("topic-list");
+  Object.keys(counts).sort().forEach(function(cat){
+    var b = document.createElement("button");
+    b.className = "topic-chip"; b.type = "button";
+    b.textContent = cat + " · " + counts[cat] + " soal";
+    b.addEventListener("click", function(){
+      var qs = QUESTIONS.filter(function(q){ return q.c===cat; });
+      beginSession("topic", MODES.topic.label + ": " + cat, qs, 0, true);
+    });
+    box.appendChild(b);
+  });
+})();
+
+/* ---------- mode cards -> instructions (exam) or direct (study) ---------- */
+document.querySelectorAll("[data-start]").forEach(function(card){
+  card.addEventListener("click", function(){
+    var key = card.getAttribute("data-start");
+    var qs, label = MODES[key].label;
+    if(key==="set1") qs = QUESTIONS.filter(function(q){return q.s===1;});
+    else if(key==="set2") qs = QUESTIONS.filter(function(q){return q.s===2;});
+    else if(key==="full") qs = shuffle(QUESTIONS).slice(0,75);
+    else qs = QUESTIONS.slice();
+    if(MODES[key].study){ beginSession(key, label, qs, 0, true); return; }
+    pendingStart = {key:key, label:label, qs:qs, minutes:MODES[key].minutes};
+    var need = Math.ceil(qs.length * 0.7);
+    $("instr-body").innerHTML =
+      "<p><strong>" + esc(label) + "</strong></p>" +
+      "<ul style='margin:6px 0;padding-left:20px'>" +
+      "<li>This exam contains <strong>" + qs.length + " multiple-choice questions</strong>. / Ujian ini berisi <strong>" + qs.length + " soal pilihan ganda</strong>.</li>" +
+      "<li>Time limit: <strong>" + MODES[key].minutes + " minutes</strong>. The exam ends automatically when time runs out. / Batas waktu <strong>" + MODES[key].minutes + " menit</strong>; ujian berakhir otomatis saat waktu habis.</li>" +
+      "<li>Choose the <strong>one best answer</strong> for each question. / Pilih <strong>satu jawaban terbaik</strong> untuk setiap soal.</li>" +
+      "<li>Use <strong>Mark for Review</strong> and the navigator to revisit questions, just like the real exam. / Gunakan <strong>Tandai</strong> dan navigasi soal untuk kembali ke soal mana pun, seperti ujian asli.</li>" +
+      "<li>Passing target for this practice: <strong>70</strong> (at least " + need + " correct). / Target lulus latihan ini: nilai <strong>70</strong> (minimal " + need + " benar).</li>" +
+      "<li>Answers and explanations are shown only after you end the exam. / Jawaban dan pembahasan tampil setelah ujian diakhiri.</li></ul>" +
+      "<p>Candidate / Peserta: <strong>" + esc(userName) + "</strong></p>";
+    $("instr-check").checked = false; $("instr-start").disabled = true;
+    $("modal-instructions").classList.remove("hidden");
+  });
+});
+$("instr-check").addEventListener("change", function(){ $("instr-start").disabled = !this.checked; });
+$("instr-cancel").addEventListener("click", function(){ $("modal-instructions").classList.add("hidden"); pendingStart=null; });
+$("instr-start").addEventListener("click", function(){
+  if(!pendingStart) return;
+  $("modal-instructions").classList.add("hidden");
+  beginSession(pendingStart.key, pendingStart.label, pendingStart.qs, pendingStart.minutes, false);
+  pendingStart = null;
+});
+
+/* ---------- session ---------- */
+function beginSession(key, label, qs, minutes, study){
+  stopTimer();
+  S = { key:key, label:label, qs:qs, idx:0, study:study,
+        answers: qs.map(function(){return -1;}), flagged: qs.map(function(){return false;}),
+        checked: qs.map(function(){return false;}),
+        total: minutes*60, left: minutes*60, elapsed: 0 };
+  $("exam-mode-label").textContent = label;
+  $("exam-user").textContent = userName;
+  $("exam-timer").textContent = study ? "—" : fmtTime(S.left);
+  $("exam-timer").classList.remove("low");
+  show("scr-exam");
+  renderQuestion();
+  if(!study){
+    S.timerId = setInterval(function(){
+      S.left--; S.elapsed++;
+      $("exam-timer").textContent = fmtTime(S.left);
+      if(S.left <= 300) $("exam-timer").classList.add("low");
+      if(S.left <= 0){ stopTimer(); finishExam(true); }
+    }, 1000);
+  }
+}
+function stopTimer(){ if(S && S.timerId){ clearInterval(S.timerId); S.timerId=null; } }
+
+function renderQuestion(){
+  var q = S.qs[S.idx], total = S.qs.length;
+  $("exam-count").textContent = (S.idx+1) + " of " + total;
+  var answered = S.answers.filter(function(a){return a>=0;}).length;
+  var marked = S.flagged.filter(Boolean).length;
+  $("exam-answered").textContent = answered;
+  $("exam-marked").textContent = marked;
+  $("exam-progress").style.width = (answered/total*100) + "%";
+  $("q-cat").textContent = q.c + " · Set " + q.s;
+  $("q-flagged").classList.toggle("hidden", !S.flagged[S.idx]);
+  $("q-text").innerHTML = bi(q.en[0], q.id[0]);
+  $("btn-flag").textContent = S.flagged[S.idx] ? "⚑ Marked / Ditandai — tap to unmark" : "⚑ Mark for Review / Tandai";
+  $("btn-prev").disabled = S.idx===0;
+  $("btn-next").textContent = S.idx===total-1 ? "Last Question / Soal Terakhir" : "Next / Berikutnya →";
+
+  var box = $("q-opts"); box.innerHTML = "";
+  q.en[1].forEach(function(_, i){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "opt";
+    var locked = S.study && S.checked[S.idx];
+    if(S.answers[S.idx]===i) b.classList.add("sel");
+    if(locked){
+      b.disabled = true;
+      if(i===q.a) b.classList.add("correct");
+      else if(S.answers[S.idx]===i) b.classList.add("wrong");
+    }
+    b.innerHTML = '<span class="letter">' + LETTERS[i] + '</span><span>' + biOpt(q.en[1][i], q.id[1][i]) + "</span>";
+    b.addEventListener("click", function(){ pickAnswer(i); });
+    box.appendChild(b);
+  });
+
+  var ex = $("q-explain");
+  if(S.study && S.checked[S.idx]){
+    var right = S.answers[S.idx]===q.a;
+    ex.innerHTML = '<div class="explain ' + (right?"ok":"bad") + '"><div class="t">' +
+      (right ? "✓ Correct / Benar" : "✗ Incorrect / Kurang tepat — correct answer / jawaban benar: " + LETTERS[q.a]) +
+      "</div>" + bi(q.en[2], q.id[2]) + "</div>";
+  } else ex.innerHTML = "";
+
+  /* navigator */
+  var grid = $("nav-grid"); grid.innerHTML = "";
+  S.qs.forEach(function(_, i){
+    var nb = document.createElement("button");
+    nb.type="button"; nb.className="navbtn" + (S.answers[i]>=0?" done":"") + (i===S.idx?" now":"");
+    nb.innerHTML = (i+1) + (S.flagged[i] ? '<span class="flagdot"></span>' : "");
+    nb.setAttribute("aria-label","Question " + (i+1));
+    nb.addEventListener("click", function(){ S.idx=i; renderQuestion(); });
+    grid.appendChild(nb);
+  });
+  $("nav-summary").textContent = answered + " / " + total + " answered / dijawab" + (marked ? " · " + marked + " marked / ditandai" : "");
+}
+
+function pickAnswer(i){
+  if(S.study){
+    if(S.checked[S.idx]) return;
+    S.answers[S.idx] = i; S.checked[S.idx] = true;
+  } else {
+    S.answers[S.idx] = (S.answers[S.idx]===i) ? i : i;
+  }
+  renderQuestion();
+}
+$("btn-prev").addEventListener("click", function(){ if(S.idx>0){ S.idx--; renderQuestion(); } });
+$("btn-next").addEventListener("click", function(){ if(S.idx<S.qs.length-1){ S.idx++; renderQuestion(); } });
+$("btn-flag").addEventListener("click", function(){ S.flagged[S.idx]=!S.flagged[S.idx]; renderQuestion(); });
+
+/* ---------- submit / review ---------- */
+$("btn-submit").addEventListener("click", function(){
+  if(S.study){ finishExam(false); return; }
+  var un = [], mk = [];
+  S.answers.forEach(function(a,i){ if(a<0) un.push(i+1); });
+  S.flagged.forEach(function(f,i){ if(f) mk.push(i+1); });
+  var answered = S.qs.length - un.length;
+  $("modal-submit-text").innerHTML = "You have answered <strong>" + answered + " of " + S.qs.length + "</strong> questions. / Anda telah menjawab <strong>" + answered + " dari " + S.qs.length + "</strong> soal." +
+    (un.length ? "" : " All questions are answered. / Semua soal sudah dijawab.");
+  function jumps(title, nums){
+    if(!nums.length) return "";
+    return "<p style='margin:10px 0 4px'><strong>" + title + "</strong></p><div>" +
+      nums.map(function(n){ return '<button type="button" class="rev-jump" data-jump="' + (n-1) + '">' + n + "</button>"; }).join("") + "</div>";
+  }
+  $("modal-review-lists").innerHTML =
+    jumps("Incomplete Questions / Soal Belum Dijawab (" + un.length + ")", un) +
+    jumps("Marked for Review / Ditandai Ragu-ragu (" + mk.length + ")", mk) +
+    "<p class='muted' style='margin-top:10px'>Tap a number to return to that question. / Ketuk nomor untuk kembali ke soal tersebut.</p>";
+  $("modal-review-lists").querySelectorAll("[data-jump]").forEach(function(b){
+    b.addEventListener("click", function(){
+      S.idx = parseInt(b.getAttribute("data-jump"),10);
+      $("modal-submit").classList.add("hidden"); renderQuestion();
+    });
+  });
+  $("modal-submit").classList.remove("hidden");
+});
+$("modal-no").addEventListener("click", function(){ $("modal-submit").classList.add("hidden"); });
+$("modal-yes").addEventListener("click", function(){ $("modal-submit").classList.add("hidden"); finishExam(false); });
+
+/* ---------- quit ---------- */
+$("btn-quit").addEventListener("click", function(){ $("modal-quit").classList.remove("hidden"); });
+$("quit-no").addEventListener("click", function(){ $("modal-quit").classList.add("hidden"); });
+$("quit-yes").addEventListener("click", function(){ $("modal-quit").classList.add("hidden"); stopTimer(); S=null; show("scr-home"); });
+
+/* ---------- finish & results ---------- */
+function finishExam(timeUp){
+  stopTimer();
+  var total = S.qs.length, correct = 0, wrong = 0, empty = 0;
+  var cats = {};
+  S.qs.forEach(function(q,i){
+    if(!cats[q.c]) cats[q.c] = {ok:0, n:0};
+    cats[q.c].n++;
+    if(S.answers[i] < 0) empty++;
+    else if(S.answers[i] === q.a){ correct++; cats[q.c].ok++; }
+    else wrong++;
+  });
+  var score = Math.round(correct/total*100);
+  var used = S.study ? 0 : (S.total - Math.max(0,S.left));
+  lastResult = { modeKey:S.key, label:S.label, study:S.study, qs:S.qs, answers:S.answers.slice(),
+                 flagged:S.flagged.slice(), score:score, correct:correct, wrong:wrong, empty:empty, used:used };
+  $("res-mode").textContent = S.label + (timeUp ? " · Time expired / Waktu habis" : "");
+  $("res-name").textContent = userName;
+  $("res-score").textContent = score;
+  var pass = score >= 70;
+  $("res-verdict").textContent = S.study ? "Practice complete / Latihan selesai"
+    : (pass ? "✓ PASS / LULUS — target 70 tercapai" : "✗ NOT YET / BELUM LULUS — target 70");
+  $("res-verdict").style.color = S.study ? "var(--ink)" : (pass ? "var(--ok)" : "var(--bad)");
+  $("res-note").textContent = S.study
+    ? "Mode belajar: nilai ini hanya untuk memantau kemajuan Anda."
+    : (pass ? "Pertahankan! Ulangi soal yang masih salah di bawah agar makin mantap."
+            : "Belum mencapai 70 — pelajari pembahasan soal yang salah, lalu coba lagi. Masih ada waktu sebelum Sabtu, 28 November 2026.");
+  $("res-correct").textContent = correct;
+  $("res-wrong").textContent = wrong;
+  $("res-empty").textContent = empty;
+  $("res-time").textContent = S.study ? "—" : fmtTime(used);
+  var catBox = $("res-cats"); catBox.innerHTML = "";
+  Object.keys(cats).sort().forEach(function(c){
+    var pct = Math.round(cats[c].ok/cats[c].n*100);
+    var row = document.createElement("div"); row.className = "cat-row";
+    row.innerHTML = '<div class="top"><span>' + esc(c) + '</span><span>' + cats[c].ok + "/" + cats[c].n + " · " + pct + '%</span></div>' +
+      '<div class="bar"><div class="' + (pct<60?"lowbar":"") + '" style="width:' + pct + '%"></div></div>';
+    catBox.appendChild(row);
+  });
+  S = null;
+  renderReview("all");
+  show("scr-result");
+}
+
+/* ---------- review list ---------- */
+function renderReview(filter){
+  document.querySelectorAll("[data-filter]").forEach(function(b){
+    var on = b.getAttribute("data-filter")===filter;
+    b.classList.toggle("plain", !on);
+  });
+  var list = $("review-list"); list.innerHTML = "";
+  var shown = 0;
+  lastResult.qs.forEach(function(q,i){
+    var a = lastResult.answers[i];
+    var isOk = a===q.a, isEmpty = a<0;
+    if(filter==="wrong" && isOk) return;
+    if(filter==="correct" && !isOk) return;
+    shown++;
+    var div = document.createElement("div"); div.className="review-item";
+    var status = isEmpty ? '<span class="bad-t">○ Not answered / Tidak dijawab</span>'
+      : isOk ? '<span class="ok-t">✓ Correct / Benar</span>' : '<span class="bad-t">✗ Incorrect / Salah</span>';
+    var your = isEmpty ? "—" : LETTERS[a] + ". " + (langMode==="id" ? q.id[1][a] : q.en[1][a]);
+    var right = LETTERS[q.a] + ". " + (langMode==="id" ? q.id[1][q.a] : q.en[1][q.a]);
+    div.innerHTML =
+      '<div class="qmeta"><span class="pill">' + esc(q.c) + '</span><span class="small muted">Question / Soal ' + (i+1) + "</span>" + status +
+      (lastResult.flagged[i] ? ' <span class="pill warn">Marked / Ditandai</span>' : "") + "</div>" +
+      '<div class="rq">' + bi(q.en[0], q.id[0]) + "</div>" +
+      '<div class="ansline"><span class="tag">Your answer / Jawaban Anda:</span> ' + esc(your) + "</div>" +
+      '<div class="ansline"><span class="tag ok-t">Correct answer / Jawaban benar:</span> ' + esc(right) + "</div>" +
+      '<div class="explain ' + (isOk?"ok":"bad") + '" style="margin-top:10px">' + bi(q.en[2], q.id[2]) + "</div>";
+    list.appendChild(div);
+  });
+  if(!shown) list.innerHTML = '<p class="muted">Tidak ada soal pada filter ini.</p>';
+}
+document.querySelectorAll("[data-filter]").forEach(function(b){
+  b.addEventListener("click", function(){ renderReview(b.getAttribute("data-filter")); });
+});
+
+/* ---------- language toggles (exam + review stay in sync) ---------- */
+document.querySelectorAll("[data-lang]").forEach(function(b){
+  b.addEventListener("click", function(){
+    langMode = b.getAttribute("data-lang");
+    document.querySelectorAll("[data-lang]").forEach(function(x){ x.classList.toggle("on", x.getAttribute("data-lang")===langMode); });
+    if(S) renderQuestion();
+    else if(lastResult && !$("scr-result").classList.contains("hidden")){
+      var active = document.querySelector("[data-filter]:not(.plain)");
+      renderReview(active ? active.getAttribute("data-filter") : "all");
+    }
+  });
+});
+
+/* ---------- result actions ---------- */
+$("btn-back-home").addEventListener("click", function(){ show("scr-home"); });
+$("btn-retry").addEventListener("click", function(){
+  if(!lastResult) return;
+  var key = lastResult.modeKey;
+  if(key==="topic"){ show("scr-home"); return; }
+  document.querySelector('[data-start="' + key + '"]').click();
+});
+</script>
+</body>
+</html>
